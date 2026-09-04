@@ -1,9 +1,10 @@
 import { useGLTF, useAnimations } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useThree, useFrame } from "@react-three/fiber";
 import { useRef, useEffect, useState } from "react";
+
 import * as THREE from "three";
 
-export default function Avatar(props) {
+export default function Avatar({ onLoaded, ...props }) {
   const group = useRef();
   const neckRef = useRef(null);
   const spineRef = useRef(null);
@@ -13,6 +14,7 @@ export default function Avatar(props) {
 
   const { scene, animations } = useGLTF("/avatar.glb");
   const { actions } = useAnimations(animations, group);
+  const { gl } = useThree();
 
   useEffect(() => {
     scene.traverse((object) => {
@@ -27,24 +29,37 @@ export default function Avatar(props) {
     // if (animationNames.length > 0) {
     //   // actions[animationNames[3]]?.reset().fadeIn(0.5).play();
     // }
-  }, [actions, scene]);
+    onLoaded?.();
+  }, [actions, scene, onLoaded]);
 
   useEffect(() => {
+    const canvas = gl.domElement;
     const handleMouseLeave = () => setIsMouseActive(false);
     const handleMouseEnter = () => setIsMouseActive(true);
 
-    document.documentElement.addEventListener("mouseleave", handleMouseLeave);
-    document.documentElement.addEventListener("mouseenter", handleMouseEnter);
+    canvas.addEventListener("mouseenter", handleMouseEnter);
+    canvas.addEventListener("mouseleave", handleMouseLeave);
+
     window.addEventListener("blur", handleMouseLeave);
     window.addEventListener("focus", handleMouseEnter);
 
     return () => {
-      document.documentElement.removeEventListener("mouseleave", handleMouseLeave);
-      document.documentElement.removeEventListener("mouseenter", handleMouseEnter);
+      canvas.removeEventListener("mouseenter", handleMouseEnter);
+      canvas.removeEventListener("mouseleave", handleMouseLeave);
       window.removeEventListener("blur", handleMouseLeave);
       window.removeEventListener("focus", handleMouseEnter);
     };
-  }, []);
+
+    // canvas.documentElement.addEventListener("mouseleave", handleMouseLeave);
+    // canvas.documentElement.addEventListener("mouseenter", handleMouseEnter);
+
+    // return () => {
+    //   canvas.documentElement.removeEventListener("mouseleave", handleMouseLeave);
+    //   canvas.documentElement.removeEventListener("mouseenter", handleMouseEnter);
+    //   // window.removeEventListener("blur", handleMouseLeave);
+    //   // window.removeEventListener("focus", handleMouseEnter);
+    // };
+  }, [gl]);
 
   useFrame((state) => {
     const { pointer } = state;

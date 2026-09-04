@@ -12,50 +12,32 @@ function CustomCursor() {
     const cursor = cursorRef.current;
     const text = textRef.current;
 
-    gsap.set(cursor, {
-      xPercent: -50,
-      yPercent: -50,
-      autoAlpha: 0,
-    });
+    gsap.set(cursor, { xPercent: -50, yPercent: -50, autoAlpha: 0 });
 
     const moveCursor = (e) => {
-      // Don't touch visibility here — only position.
       if (!isInsideRef.current) return;
-
-      gsap.to(cursor, {
-        x: e.clientX,
-        y: e.clientY,
-        duration: 0.45,
-        ease: "power3.out",
-      });
+      gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.45, ease: "power3.out" });
     };
 
-    const handleMouseLeave = () => {
+    const handleMouseLeaveDoc = () => {
       isInsideRef.current = false;
-      gsap.killTweensOf(cursor, "autoAlpha"); // cancel anything trying to fade it back in
-      gsap.to(cursor, {
-        autoAlpha: 0,
-        duration: 0.2,
-        ease: "power2.out",
-      });
-    };
-
-    const handleMouseEnter = (e) => {
-      isInsideRef.current = true;
-      gsap.set(cursor, {
-        x: e.clientX,
-        y: e.clientY,
-      });
-
       gsap.killTweensOf(cursor, "autoAlpha");
-      gsap.to(cursor, {
-        autoAlpha: 1,
-        duration: 0.2,
-      });
+      gsap.to(cursor, { autoAlpha: 0, duration: 0.2, ease: "power2.out" });
     };
 
-    const handleEnter = (e) => {
-      const type = e.currentTarget.dataset.cursor;
+    const handleMouseEnterDoc = (e) => {
+      isInsideRef.current = true;
+      gsap.set(cursor, { x: e.clientX, y: e.clientY });
+      gsap.killTweensOf(cursor, "autoAlpha");
+      gsap.to(cursor, { autoAlpha: 1, duration: 0.2 });
+    };
+
+    // --- Event delegation: sirf ek listener, dynamic elements bhi cover honge ---
+    const handleOver = (e) => {
+      const target = e.target.closest("a, button, [data-cursor]");
+      if (!target) return;
+
+      const type = target.dataset.cursor;
 
       if (type === "view") {
         gsap.to(cursor, {
@@ -66,24 +48,19 @@ function CustomCursor() {
           duration: 0.3,
           ease: "power3.out",
         });
-
-        gsap.to(text, {
-          opacity: 1,
-          scale: 1,
-          duration: 0.3,
-          ease: "back.out(2)",
-        });
+        gsap.to(text, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" });
       } else {
-        gsap.to(cursor, {
-          width: 55,
-          height: 55,
-          duration: 0.3,
-          ease: "power3.out",
-        });
+        gsap.to(cursor, { width: 55, height: 55, duration: 0.3, ease: "power3.out" });
       }
     };
 
-    const handleLeave = () => {
+    const handleOut = (e) => {
+      const target = e.target.closest("a, button, [data-cursor]");
+      if (!target) return;
+
+      // agar naya target bhi interactive hai (nested elements), to skip
+      if (e.relatedTarget && e.relatedTarget.closest("a, button, [data-cursor]") === target) return;
+
       gsap.to(cursor, {
         width: 32,
         height: 32,
@@ -92,34 +69,21 @@ function CustomCursor() {
         duration: 0.3,
         ease: "power3.out",
       });
-
-      gsap.to(text, {
-        opacity: 0,
-        scale: 0.5,
-        duration: 0.2,
-      });
+      gsap.to(text, { opacity: 0, scale: 0.5, duration: 0.2 });
     };
 
     window.addEventListener("mousemove", moveCursor);
-    document.documentElement.addEventListener("mouseleave", handleMouseLeave);
-    document.documentElement.addEventListener("mouseenter", handleMouseEnter);
-
-    const interactiveElements = document.querySelectorAll("a, button, [data-cursor]");
-
-    interactiveElements.forEach((el) => {
-      el.addEventListener("mouseenter", handleEnter);
-      el.addEventListener("mouseleave", handleLeave);
-    });
+    document.documentElement.addEventListener("mouseleave", handleMouseLeaveDoc);
+    document.documentElement.addEventListener("mouseenter", handleMouseEnterDoc);
+    document.addEventListener("mouseover", handleOver);
+    document.addEventListener("mouseout", handleOut);
 
     return () => {
       window.removeEventListener("mousemove", moveCursor);
-      document.documentElement.removeEventListener("mouseleave", handleMouseLeave);
-      document.documentElement.removeEventListener("mouseenter", handleMouseEnter);
-
-      interactiveElements.forEach((el) => {
-        el.removeEventListener("mouseenter", handleEnter);
-        el.removeEventListener("mouseleave", handleLeave);
-      });
+      document.documentElement.removeEventListener("mouseleave", handleMouseLeaveDoc);
+      document.documentElement.removeEventListener("mouseenter", handleMouseEnterDoc);
+      document.removeEventListener("mouseover", handleOver);
+      document.removeEventListener("mouseout", handleOut);
     };
   }, []);
 
