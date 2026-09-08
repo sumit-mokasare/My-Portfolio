@@ -18,7 +18,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 md:px-12 py-5 border-b border-line backdrop-blur-sm bg-bg/40 ">
+    <nav className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 md:px-12 py-5  backdrop-blur-sm bg-bg/40 ">
       <span className="font-bold text-lg text-ink">Sumit Mokasare</span>
 
       <div className="flex items-center gap-8">

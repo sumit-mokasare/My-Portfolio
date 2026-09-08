@@ -40,6 +40,10 @@ html.dark {
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-accent2: var(--accent2);
+
+  --font-display: "Space Grotesk", "Inter", sans-serif; /* body copy, nav, buttons, UI */
+  --font-voice: "Fraunces", "Georgia", serif; /* italic accent phrases, pull quotes */
+  --font-mono: "JetBrains Mono", "Menlo", monospace;
 }
 
 /* =========================
@@ -65,6 +69,23 @@ body {
   transition-timing-function: ease;
 }
 
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
 /* Navgetion animation css  */
 
 .nav-link {
@@ -87,4 +108,13 @@ body {
 .nav-link:hover::after {
   transform: scaleX(1);
   transform-origin: left;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }

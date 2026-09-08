@@ -1,9 +1,10 @@
 import Hero from "./pages/Hero";
-import AvatarCanvas from "./components/AvatarCanvas";
 import CustomCursor from "./components/CustomCursor";
 import { useState } from "react";
 import PageLoader from "./components/PageLoader";
-import { About } from "./pages/About";
+import About from "./pages/About";
+import Projects from "./pages/Projects";
+import SmoothScroll from "./components/SmoothScroll";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -14,13 +15,18 @@ export default function App() {
     userSelect: "none" /* Non-prefixed version, currently supported by most browsers */,
   };
   return (
-    <>
-      {loading && <PageLoader onComplete={() => setLoading(false)} />}
+    <SmoothScroll>
+      {/* {loading && <PageLoader onComplete={() => setLoading(false)} />} */}
       <div style={noSelectStyle}>
         <CustomCursor />
-        {!loading && <Hero />}
-        <About />
+        {loading && (
+          <div>
+            <Hero />
+            <About />
+            <Projects />
+          </div>
+        )}
       </div>
-    </>
+    </SmoothScroll>
   );
 }

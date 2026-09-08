@@ -66,7 +66,6 @@ export default function Avatar({ onLoaded, ...props }) {
 
     if (!neckRef.current) return;
 
-    // 👇 yeh line missing thi — target values ab isMouseActive par depend karengi
     const targetNeckY = isMouseActive ? pointer.x * 0.5 : 0;
     const targetNeckX = isMouseActive ? -pointer.y * 0.6 : 0;
 
