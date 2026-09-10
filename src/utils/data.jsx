@@ -91,3 +91,46 @@ export const projects = [
     ],
   },
 ];
+
+export const skills = [
+  {
+    id: "01",
+    title: "Frontend",
+    short: "React / JavaScript / UI",
+    description: "Building fast, responsive and interactive interfaces with modern frontend technologies.",
+    tech: ["React", "JavaScript", "HTML", "CSS"],
+    icon: "react",
+  },
+  {
+    id: "02",
+    title: "Backend",
+    short: "Node / APIs / Database",
+    description: "Creating scalable backend systems, APIs and data-driven applications.",
+    tech: ["Node.js", "Express", "MongoDB", "REST API"],
+    icon: "node",
+  },
+  {
+    id: "03",
+    title: "Generative AI",
+    short: "AI / LLM / Automation",
+    description: "Integrating generative AI into products, workflows and modern web experiences.",
+    tech: ["OpenAI", "LLM", "RAG", "AI Agents"],
+    icon: "ai",
+  },
+  {
+    id: "04",
+    title: "Creative Development",
+    short: "GSAP / WebGL / Motion",
+    description: "Designing expressive digital experiences with animation, motion and interactive visuals.",
+    tech: ["GSAP", "Three.js", "WebGL", "Motion"],
+    icon: "three",
+  },
+  {
+    id: "05",
+    title: "Tools",
+    short: "Git / GitHub / Vite",
+    description: "Using modern development tools to build, ship and maintain production-ready projects.",
+    tech: ["Git", "GitHub", "Vite", "Figma"],
+    icon: "git",
+  },
+];

@@ -7,7 +7,7 @@ function PageLoader({ onComplete }) {
   const barRef = useRef(null);
   const counterRef = useRef(null);
   useEffect(() => {
-    const counterObj = { value: 100 };
+    const counterObj = { value: 0 };
 
     const tl = gsap.timeline({
       defaults: {
@@ -32,7 +32,7 @@ function PageLoader({ onComplete }) {
 
       // Counter
       .to(counterObj, {
-        value: 0,
+        value: 100,
         duration: 2.2,
         ease: "power1.inOut",
 
@@ -40,12 +40,12 @@ function PageLoader({ onComplete }) {
           const value = Math.ceil(counterObj.value);
 
           if (counterRef.current) {
-            counterRef.current.textContent = value;
+            counterRef.current.textContent = value + "%";
           }
 
           if (barRef.current) {
             gsap.set(barRef.current, {
-              scaleX: 1 - value / 100,
+              scaleX: value / 100,
             });
           }
         },
@@ -121,7 +121,7 @@ function PageLoader({ onComplete }) {
           <span className="text-[10px] uppercase tracking-[0.2em] text-muted">Loading</span>
 
           <span ref={counterRef} className="text-xs font-medium tabular-nums text-ink">
-            100
+            0%
           </span>
         </div>
       </div>

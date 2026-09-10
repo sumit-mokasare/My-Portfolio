@@ -167,20 +167,19 @@ function Hero() {
   return (
     <div
       ref={heroRef}
-      className="relative h-screen w-full overflow-hidden bg-bg text-ink font-display pointer-events-none "
+      id="hero"
+      className="relative w-full overflow-hidden bg-bg text-ink font-display pointer-events-none min-h-screen lg:h-screen flex flex-col lg:block"
     >
-      <div className="floating-shapes absolute inset-0 z-10 pointer-events-none">
-        <FloatingShapes />
-      </div>
-      {/* Heading — top par, wide, avatar ke peeche (z-0), jaisa screenshot me hai */}
-      <div className="absolute inset-x-0 top-16 md:top-20 z-0 px-4 md:px-10 pointer-events-none overflow-hidden">
-        <h1 className="title-heading font-extrabold leading-[0.85] tracking-tight text-[15vw] sm:text-[12vw] md:text-[8vw] text-center">
+      <div className="floating-shapes absolute inset-0 z-10 pointer-events-none">{/* <FloatingShapes /> */}</div>
+      {/* Heading — small/medium: normal flow, top of stack. lg+: absolute, wide, avatar ke peeche */}
+      <div className="order-1 mt-2 relative lg:absolute inset-x-0 lg:top-16 lg:md:top-20 z-0 pt-28 lg:pt-0 px-4 md:px-10 pointer-events-none overflow-hidden">
+        <h1 className="title-heading font-extrabold leading-[0.85] tracking-tight text-[12vw] sm:text-[12vw] md:text-[8vw] lg:text-[8vw] text-center">
           HI, I'M SUMIT
         </h1>
       </div>
 
-      {/* Avatar — full-bleed background layer, still interactive (orbit drag) */}
-      <div className="absolute inset-0 z-10">
+      {/* Avatar — small/medium: normal flow block below content, fixed height. lg+: full-bleed background layer */}
+      <div className="hero-avatar-layer order-3 relative lg:absolute w-full h-[45vh] sm:h-[50vh] md:h-[55vh] lg:inset-0 lg:h-full z-10">
         <AvatarCanvas onLoaded={() => setAvatarLoading(false)} />
         {avatarLoading && (
           <div className="absolute inset-0 flex items-center justify-center ">
@@ -216,9 +215,9 @@ function Hero() {
         </div>
       </div>
 
-      {/* Bottom content — subtitle/description left, buttons right, jaisa screenshot me hai */}
-      <div className="hero-content absolute top-1/2 inset-0 z-10 flex flex-col justify-center pb-20 md:pb-28 px-6 md:px-12 pointer-events-none">
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      {/* Bottom content — small/medium: normal flow, right after heading (still "up" with content). lg+: absolute, centered mid-screen over avatar */}
+      <div className="hero-content order-2 relative lg:absolute lg:top-1/2 lg:inset-0 z-20 lg:z-10 flex flex-col justify-center  mt-10 pb-8 lg:pb-20 md:lg:pb-28 px-6 md:px-12 pointer-events-none">
+        <div className="flex flex-col items-center gap-6 md:flex-row md:items-center md:justify-between">
           <div className="max-w-md">
             <p className="hero-subtitle pointer-events-none font-voice font-bold text-accent2 text-lg md:text-2xl">
               Fullstack developer building for the web
@@ -240,8 +239,7 @@ function Hero() {
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-6 md:left-12 right-6 md:right-12 z-10 flex justify-between text-xs text-muted pointer-events-none">
-        <span>based in nagpur, india</span>
+      <div className="absolute bottom-6 left-6 md:left-12 right-6 md:right-12 z-20 flex justify-between text-xs text-muted pointer-events-none">
         <span>scroll to explore ↓</span>
       </div>
     </div>

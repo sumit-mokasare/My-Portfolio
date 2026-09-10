@@ -7,8 +7,6 @@ import { SplitText } from "gsap/all";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
-const skills = ["React", "Node.js", "Three.js / R3F", "Tailwind", "Generative AI", "MongoDB"];
-
 export default function About() {
   const sectionRef = useRef(null);
   const numeralRef = useRef(null);
@@ -62,7 +60,7 @@ export default function About() {
       // ---- scroll-scrubbed color fade: muted -> original ink color ----
 
       gsap.to(headlineSplit.words, {
-        color: "var(--color-accent)",
+        color: "var(--color-accent2)",
         stagger: 1,
         ease: "power1.out",
         scrollTrigger: { trigger: sectionRef.current, start: "40% 90%", end: "40% 75%", scrub: true },
@@ -199,7 +197,7 @@ export default function About() {
               A developer who loves turning ideas into working products.
             </h2>
 
-            <p ref={paraRef} className="text-muted font-display font mt-6  max-w-xl leading-relaxed text-[15px]">
+            <p ref={paraRef} className="text-muted font-display font mt-6  max-w-2xl leading-relaxed text-[15px]">
               I’m Sumit, a BCA student and Full-Stack Developer in the making. My journey into development started with
               the web fundamentals and has grown into building full-stack applications using React, Node.js, Express,
               MongoDB, PostgreSQL, and Prisma. I learn best by turning concepts into projects, breaking things, fixing

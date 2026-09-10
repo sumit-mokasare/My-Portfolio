@@ -4,7 +4,11 @@ import { useState } from "react";
 import PageLoader from "./components/PageLoader";
 import About from "./pages/About";
 import Projects from "./pages/Projects";
-import SmoothScroll from "./components/SmoothScroll";
+import { SmoothScroll } from "./components/SmoothScroll";
+import Skills from "./pages/Skills";
+import Certifications from "./pages/Certifications";
+import Contact from "./pages/Contact";
+import Footer from "./pages/Footer";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -16,14 +20,18 @@ export default function App() {
   };
   return (
     <SmoothScroll>
-      {/* {loading && <PageLoader onComplete={() => setLoading(false)} />} */}
+      {loading && <PageLoader onComplete={() => setLoading(false)} />}
       <div style={noSelectStyle}>
         <CustomCursor />
-        {loading && (
+        {!loading && (
           <div>
             <Hero />
             <About />
             <Projects />
+            <Skills />
+            <Certifications />
+            <Contact />
+            <Footer />
           </div>
         )}
       </div>

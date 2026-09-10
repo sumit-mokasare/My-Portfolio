@@ -51,7 +51,7 @@ html.dark {
    ========================= */
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto !important; /* Lenis khud smoothness handle karega */
 }
 
 body {
