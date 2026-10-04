@@ -1,249 +1,202 @@
-import { useRef, useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Button from "../components/Button";
-import { useGSAP } from "@gsap/react";
-import { SplitText } from "gsap/all";
+import Reveal from "../components/Reveal";
+import { facts, learningJourney, specialties, strengths } from "../utils/data";
 
-gsap.registerPlugin(ScrollTrigger, SplitText);
+/* One shared card style so every card has the same radius, border, padding. */
+const card = "h-full rounded-2xl border border-line bg-bg p-6 sm:p-8";
 
 export default function About() {
-  const sectionRef = useRef(null);
-  const numeralRef = useRef(null);
-  const textColRef = useRef(null);
-  const headingRef = useRef(null);
-  const paraRef = useRef(null);
-  const btnRef = useRef(null);
-  const photoRef = useRef(null);
-  const shape1Ref = useRef(null);
-  const shape2Ref = useRef(null);
-  const shape3Ref = useRef(null);
-
-  useGSAP(() => {
-    const headlineSplit = SplitText.create(headingRef.current, {
-      type: "words",
-    });
-    const paraSplit = SplitText.create(paraRef.current, {
-      type: "words , lines",
-    });
-
-    const ctx = gsap.context(() => {
-      // ---- entrance: fade/rise-in for the text column (fires once) ----
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: sectionRef.current, start: "top 70%", once: true },
-      });
-
-      tl.from(headingRef.current, { y: 40, opacity: 0, duration: 0.9, ease: "power3.out" })
-        .from(paraRef.current, { y: 24, opacity: 0, duration: 0.7, ease: "power3.out" }, "-=0.5")
-        .from(btnRef.current, { y: 29, opacity: 0, duration: 0.6, ease: "power3.out" }, "-=0.4");
-
-      gsap.from(photoRef.current, {
-        scrollTrigger: { trigger: photoRef.current, start: "top 75%", once: true },
-        x: 60,
-        opacity: 0,
-        scale: 0.94,
-        duration: 1,
-        ease: "power3.out",
-      });
-
-      // ---- continuous scroll parallax (scrubbed, whole time section is in view) ----
-      const parallaxScroll = { trigger: sectionRef.current, start: "top bottom", end: "bottom top", scrub: 1 };
-
-      gsap.to(numeralRef.current, { yPercent: -30, rotate: 10, ease: "none", scrollTrigger: parallaxScroll });
-      gsap.to(photoRef.current, { yPercent: -18, ease: "none", scrollTrigger: parallaxScroll });
-      gsap.to(textColRef.current, { yPercent: -20, ease: "none", scrollTrigger: parallaxScroll });
-
-      gsap.to(shape1Ref.current, { yPercent: -40, ease: "none", scrollTrigger: parallaxScroll });
-      gsap.to(shape2Ref.current, { yPercent: 50, ease: "none", scrollTrigger: parallaxScroll });
-      gsap.to(shape3Ref.current, { yPercent: -25, ease: "none", scrollTrigger: parallaxScroll });
-
-      // ---- scroll-scrubbed color fade: muted -> original ink color ----
-
-      gsap.to(headlineSplit.words, {
-        color: "var(--color-accent2)",
-        stagger: 1,
-        ease: "power1.out",
-        scrollTrigger: { trigger: sectionRef.current, start: "40% 90%", end: "40% 75%", scrub: true },
-      });
-
-      gsap.from(paraSplit.words, {
-        y: "60%",
-        opacity: 0,
-        rotateX: 20,
-        transformOrigin: "50% 100%",
-        duration: 1.1,
-        stagger: 0.06,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          // markers: true,
-          start: "40% 70%",
-          end: "50% center",
-          scrub: 1.2,
-        },
-      });
-
-      // ---- button "pop" once paragraph reveal finishes — separate, reliable trigger ----
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: "50% center",
-        onEnter: () => {
-          gsap.fromTo(
-            btnRef.current,
-            { scale: 0.9, opacity: 0.6 },
-            {
-              scale: 1,
-              opacity: 1,
-              duration: 0.5,
-              ease: "back.out(2.5)",
-            },
-          );
-        },
-        onLeaveBack: () => {
-          gsap.to(btnRef.current, {
-            scale: 0.9,
-            opacity: 0.6,
-            duration: 0.3,
-            ease: "power2.out",
-          });
-        },
-      });
-
-      // ---- interactive: photo panel tilts toward the cursor ----
-      const photoEl = photoRef.current;
-      const handleMove = (e) => {
-        const rect = photoEl.getBoundingClientRect();
-        const px = (e.clientX - rect.left) / rect.width - 0.5;
-        const py = (e.clientY - rect.top) / rect.height - 0.5;
-        gsap.to(photoEl, {
-          rotateY: px * 10,
-          rotateX: -py * 10,
-          duration: 0.5,
-          ease: "power2.out",
-          transformPerspective: 800,
-        });
-      };
-      const handleLeave = () => {
-        gsap.to(photoEl, { rotateY: 0, rotateX: 0, duration: 0.6, ease: "power3.out" });
-      };
-      photoEl.addEventListener("mousemove", handleMove);
-      photoEl.addEventListener("mouseleave", handleLeave);
-
-      return () => {
-        photoEl.removeEventListener("mousemove", handleMove);
-        photoEl.removeEventListener("mouseleave", handleLeave);
-      };
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <section
-      ref={sectionRef}
-      id="about"
-      className="relative min-h-screen bg-bg text-ink pt-28 md:pt-36 pb-0 px-6 md:px-12 overflow-hidden"
-    >
-      {/* giant faint section numeral */}
-      <div
-        ref={numeralRef}
-        className="absolute -top-10 left-1/2 -translate-x-1/2 font-bold text-ink pointer-events-none select-none"
-        style={{ fontSize: "min(34vw, 340px)", opacity: 0.035, lineHeight: 1, letterSpacing: "-0.05em" }}
-      >
-        02
-      </div>
+    <section id="about" className="section-shell bg-surface px-6 py-24 text-ink md:px-12 md:py-32">
+      <div className="mx-auto max-w-6xl">
+        {/* ───────── 01 · ABOUT ME ───────── */}
+        <Reveal>
+          <div className="section-kicker">
+            <span>01</span>
+            <i /> ABOUT ME
+          </div>
 
-      {/* decorative outline shapes */}
-      <svg
-        ref={shape1Ref}
-        className="absolute bottom-21 right-[2%] w-16 h-16 text-accent/40 pointer-events-none"
-        viewBox="0 0 64 64"
-        fill="none"
-      >
-        <circle cx="32" cy="32" r="30" stroke="currentColor" strokeWidth="1.2" />
-      </svg>
-      <svg
-        ref={shape2Ref}
-        className="absolute top-80 right-[6%] w-10 h-10 text-accent2/50 pointer-events-none rotate-12"
-        viewBox="0 0 40 40"
-        fill="none"
-      >
-        <rect x="2" y="2" width="36" height="36" rx="6" stroke="currentColor" strokeWidth="1.2" />
-      </svg>
-      <svg
-        ref={shape3Ref}
-        className="absolute top-80 left-[3%] w-7 h-7 text-muted/40 pointer-events-none"
-        viewBox="0 0 32 32"
-        fill="none"
-      >
-        <path d="M16 2 L30 28 H2 Z" stroke="currentColor" strokeWidth="1.2" />
-      </svg>
+          <div className="mt-6 grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-start lg:gap-16">
+            {/* LEFT: story */}
+            <div>
+              <h2 className="section-heading max-w-3xl">
+                Full-stack developer.
+                <span className="block text-accent">AI enthusiast.</span>
+              </h2>
 
-      <div className="absolute top-10 flex items-center gap-3 ">
-        <span className="text-xs tracking-widest text-muted">( 02 )</span>
-        <span className="h-px w-10 bg-line"></span>
-        <span className="text-xs tracking-widest text-muted">ABOUT</span>
-      </div>
+              {/* One strong lead, then short supporting copy: easier to scan than 4 equal paragraphs */}
+              <p className="mt-8 max-w-2xl text-lg font-medium leading-8 text-ink sm:text-xl sm:leading-9">
+                I&apos;m Sumit Mokasare, a BCA student who turns ideas into functional, user-friendly web applications,
+                from the interface to the API behind it.
+              </p>
 
-      <div className="max-w-6xl font-mono mx-auto my-10 relative z-10">
-        <div className="grid md:grid-cols-2 gap-16 items-start ">
-          {/* left: statement + stats */}
-          <div ref={textColRef}>
-            <h2
-              ref={headingRef}
-              className="font-bold font-display text-muted  leading-[1.05] tracking-tight text-3xl sm:text-4xl md:text-5xl"
-              style={{ color: "var(--color-muted)" }}
-            >
-              A developer who loves turning ideas into working products.
-            </h2>
+              <div className="mt-6 max-w-2xl space-y-4 text-sm leading-7 text-muted sm:text-base">
+                <p>
+                  I started with web fundamentals and grew into building complete applications: responsive interfaces,
+                  REST APIs, and scalable architectures. Right now I&apos;m adding Generative AI to that toolkit,
+                  including LLMs, RAG, and AI agents, so I can build smarter apps that solve meaningful problems.
+                </p>
+                <p>
+                  I learn best by building, and I&apos;m preparing for my first software development internship where I
+                  can contribute and grow alongside experienced developers.
+                </p>
+              </div>
 
-            <p ref={paraRef} className="text-muted font-display font mt-6  max-w-2xl leading-relaxed text-[15px]">
-              I’m Sumit, a BCA student and Full-Stack Developer in the making. My journey into development started with
-              the web fundamentals and has grown into building full-stack applications using React, Node.js, Express,
-              MongoDB, PostgreSQL, and Prisma. I learn best by turning concepts into projects, breaking things, fixing
-              them, and understanding what happens behind the code.
-              <br />
-              These days, I’m going beyond traditional web development and exploring Generative AI, RAG, Three.js, and
-              interactive experiences. My goal is simple: keep learning, build better projects, and grow into a
-              developer who can take an idea from concept to a working product.
-            </p>
-
-            <div ref={btnRef} className="mt-11 ">
-              <Button variant="primary" href="#contact">
-                Let's work together →
-              </Button>
+              <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
+                <Button variant="primary" href="#contact">
+                  Let&apos;s connect <span aria-hidden="true">↗</span>
+                </Button>
+                <a
+                  href="#work"
+                  className="text-sm font-medium text-muted underline-offset-4 transition-colors hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  See my work
+                </a>
+              </div>
             </div>
-          </div>
 
-          {/* right: ambient-gradient photo panel — swap the inner div for a real <img> */}
-          <div
-            ref={photoRef}
-            className="relative aspect-square rounded-[22px] overflow-hidden border border-line"
-            style={{ transformStyle: "preserve-3d", willChange: "transform" }}
-          >
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 20%, color-mix(in oklab, var(--color-accent) 55%, transparent), transparent 55%), radial-gradient(circle at 75% 75%, color-mix(in oklab, var(--color-accent2) 45%, transparent), transparent 55%), linear-gradient(160deg, var(--color-surface) 0%, var(--color-bg) 100%)",
-              }}
-            />
-            {/* replace the block above with: */}
-            {/* // <img src="./m y-photo.png" className="absolute inset-0 w-full h-full object-cover" /> */}
-            <span
-              className="absolute top-3.5 right-3.5 font-mono text-[11px] text-ink/55 tracking-widest"
-              style={{ writingMode: "vertical-rl" }}
-            >
-              PORTRAIT / 01
-            </span>
-            <span className="absolute bottom-5 left-5 text-xs text-ink bg-bg/40 backdrop-blur-md border border-ink/15 px-4 py-2 rounded-full">
-              {/* <img src="./my-photo.png" className="absolute inset-0 w-full h-full object-cover" /> */}
-            </span>
-            <span className="absolute top-3.5 left-3.5 size-4 border-t border-l border-ink/35"></span>
-            <span className="absolute top-3.5 right-3.5 size-4 border-t border-r border-ink/35"></span>
-            <span className="absolute bottom-3.5 left-3.5 size-4 border-b border-l border-ink/35"></span>
-            <span className="absolute bottom-3.5 right-3.5 size-4 border-b border-r border-ink/35"></span>
+            {/* RIGHT: profile card */}
+            <aside className="about-profile-card relative overflow-hidden rounded-2xl border border-line bg-bg p-6 sm:p-8 lg:sticky lg:top-28">
+              <div
+                className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-accent/10 blur-2xl"
+                aria-hidden="true"
+              />
+              <div className="relative">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent font-display text-lg font-bold text-white">
+                    SM
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-display text-lg font-semibold">Sumit Mokasare</p>
+                    <p className="mt-1 inline-flex items-center gap-2 text-xs text-muted">
+                      <span className="relative flex size-3">
+                        <span className="absolute inline-flex h-full  w-full animate-ping! rounded-full bg-accent2 opacity-75"></span>
+                        <span className="relative inline-flex  size-3 rounded-full bg-accent2"></span>
+                      </span>
+                      Open to internships
+                    </p>
+                  </div>
+                </div>
+
+                <dl className="mt-6 divide-y divide-line border-y border-line text-sm">
+                  {facts.map((fact) => (
+                    <div key={fact.label} className="flex items-baseline justify-between gap-6 py-3">
+                      <dt className="shrink-0 text-xs text-muted">{fact.label}</dt>
+                      <dd className="text-right font-medium">{fact.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <p className="mt-6 text-base font-medium leading-7">
+                  Solve real problems with clean code, thoughtful design, and continuous learning.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {["Build", "Learn", "Improve"].map((label) => (
+                    <span
+                      key={label}
+                      className="rounded-full border border-line bg-surface px-3 py-1.5 text-xs text-muted"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </aside>
           </div>
+        </Reveal>
+        {/* ───────── 01.2 + 01.3 · EDUCATION / JOURNEY ───────── */}
+        <div className="mt-24 grid gap-12 md:mt-32 lg:grid-cols-2 lg:gap-8">
+          <Reveal>
+            <div className="flex h-full flex-col">
+              <div className="section-kicker">
+                <span>01.2</span>
+                <i /> EDUCATION & EXPERIENCE
+              </div>
+              <article className={`${card} mt-6 flex-1`}>
+                <span className="rounded-full bg-accent/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-accent">
+                  Currently pursuing
+                </span>
+                <h3 className="mt-5 font-display text-xl font-semibold sm:text-2xl">
+                  Bachelor of Computer Applications (BCA)
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  I&apos;m pursuing my undergraduate degree while learning full-stack development and Generative AI
+                  through practical projects, self-learning, and online courses.
+                </p>
+                <div className="mt-7 border-t border-line pt-6">
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Experience</p>
+                  <h4 className="mt-3 font-display text-lg font-semibold">Fresher · Aspiring developer</h4>
+                  <p className="mt-2 text-sm leading-6 text-muted">
+                    I haven&apos;t yet held a professional industry role. Personal full-stack projects have helped me
+                    practice frontend and backend development, authentication, database design, API development, and
+                    modern workflows.
+                  </p>
+                </div>
+              </article>
+            </div>
+          </Reveal>
+
+          <Reveal delay={100}>
+            <div className="flex h-full flex-col">
+              <div className="section-kicker">
+                <span>01.3</span>
+                <i /> MY LEARNING JOURNEY
+              </div>
+              {/* Timeline now lives in the same card as its neighbour => equal height, equal padding */}
+              <div className={`${card} mt-6 flex-1`}>
+                <ol className="learning-timeline space-y-0">
+                  {learningJourney.map((step, index) => (
+                    <li key={step} className="learning-step">
+                      <span className="learning-step-marker">{String(index + 1).padStart(2, "0")}</span>
+                      <p className="text-sm leading-6 text-muted">{step}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+        {/* ───────── 01.4 + 01.5 · OBJECTIVE / DIFFERENT ───────── */}
+        {/* Same structure as 01.2/01.3: kicker above, card below, equal heights, same top margin */}
+        <div className="mt-24 grid gap-12 md:mt-32 lg:grid-cols-2 lg:gap-8">
+          <Reveal>
+            <div className="flex h-full flex-col">
+              <div className="section-kicker">
+                <span>01.4</span>
+                <i /> CAREER OBJECTIVE
+              </div>
+              <article className={`${card} mt-6 flex-1`}>
+                <h3 className="font-display text-xl font-semibold">Ready to grow with a collaborative team.</h3>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  I&apos;m looking for internship and entry-level opportunities where I can contribute to real-world
+                  products, learn from experienced engineers, and grow into a well-rounded software developer with a
+                  focus on AI-powered applications.
+                </p>
+              </article>
+            </div>
+          </Reveal>
+
+          <Reveal delay={100}>
+            <div className="flex h-full flex-col">
+              <div className="section-kicker">
+                <span>01.5</span>
+                <i /> WHAT MAKES ME DIFFERENT
+              </div>
+              <article className={`${card} mt-6 flex-1`}>
+                <h3 className="font-display text-xl font-semibold">Curiosity with a hands-on mindset.</h3>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {strengths.map((strength) => (
+                    <span
+                      key={strength}
+                      className="rounded-full border border-line bg-surface px-3 py-2 text-xs text-muted"
+                    >
+                      {strength}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>

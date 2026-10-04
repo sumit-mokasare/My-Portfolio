@@ -1,372 +1,266 @@
-import { useRef, useState, useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
+import { useEffect, useRef, useState } from "react";
+import Reveal from "../components/Reveal";
+import { certifications } from "../utils/data";
 
-gsap.registerPlugin(ScrollTrigger);
+/**
+ * For each certificate you can add:
+ *   image:        path to the real certificate image, e.g. "/fullstackCertificate.png"  (file goes in /public)
+ *   link:         credential / verification URL
+ *   credentialId: optional ID text
+ * Leave any of them empty ("") and the UI falls back to the original artwork.
+ */
 
-// Replace `image` with your real certificate screenshot/image path
-// (e.g. put files in /public/certificates/ and use "/certificates/cert-1.jpg")
-// issuer slugs use Simple Icons (e.g. "udemy", "coursera", "freecodecamp")
-const certifications = [
-  {
-    id: "01",
-    title: "Full-Stack Web Development",
-    issuer: "Udemy",
-    issuerSlug: "udemy",
-    year: "2025",
-    link: "#",
-    image: "https://picsum.photos/seed/cert-01/700/500",
-    description:
-      "A complete path through modern web development — building, testing and deploying full-stack applications end to end.",
-  },
-  {
-    id: "02",
-    title: "Generative AI for Developers",
-    issuer: "Coursera",
-    issuerSlug: "coursera",
-    year: "2025",
-    link: "#",
-    image: "https://picsum.photos/seed/cert-02/700/500",
-    description:
-      "Covers LLM fundamentals, prompt design, retrieval-augmented generation and shipping AI features inside real products.",
-  },
-  {
-    id: "03",
-    title: "JavaScript Algorithms and Data Structures",
-    issuer: "freeCodeCamp",
-    issuerSlug: "freecodecamp",
-    year: "2024",
-    link: "#",
-    image: "https://picsum.photos/seed/cert-03/700/500",
-    description:
-      "Core computer-science fundamentals in JavaScript — algorithms, data structures and problem solving from first principles.",
-  },
-  {
-    id: "04",
-    title: "Responsive Web Design",
-    issuer: "freeCodeCamp",
-    issuerSlug: "freecodecamp",
-    year: "2024",
-    link: "#",
-    image: "https://picsum.photos/seed/cert-04/700/500",
-    description:
-      "Modern layout systems, accessibility basics and responsive design patterns for building interfaces that work everywhere.",
-  },
-];
+function CertificateArtwork({ cert, large = false }) {
+  const [imageFailed, setImageFailed] = useState(false);
 
-const n = certifications.length;
-
-// fanned-hand layout: each card gets its own tilt AND its own horizontal offset,
-// so cards are no longer perfectly stacked — each has real, hoverable surface area
-const baseRotations = certifications.map((_, i) => (i % 2 === 0 ? -1 : 1) * (5 + (i % 3) * 3));
-const fanOffsetX = certifications.map((_, i) => (i - (n - 1) / 2) * 72);
-
-export default function Certifications() {
-  const sectionRef = useRef(null);
-  const stackRef = useRef(null);
-  const cardsRef = useRef([]);
-  const overlayRef = useRef(null);
-  const overlayCardRef = useRef(null);
-  const activeIndexRef = useRef(null); // which card (if any) is currently lifted to the top
-
-  const [activeCert, setActiveCert] = useState(null);
-
-  useGSAP(
-    () => {
-      // ---- initial state: every card starts off-screen below, exaggerated tilt ----
-      cardsRef.current.forEach((card, i) => {
-        gsap.set(card, {
-          xPercent: -50,
-          yPercent: -50,
-          x: fanOffsetX[i],
-          y: "70vh",
-          opacity: 0,
-          rotate: baseRotations[i] * 3,
-          zIndex: i + 1,
-        });
-      });
-
-      // ---- pinned scroll: cards deal in one by one and settle into the fanned hand ----
-      const masterTl = gsap.timeline();
-
-      cardsRef.current.forEach((card, i) => {
-        masterTl.to(
-          card,
-          {
-            y: 0,
-            opacity: 1,
-            rotate: baseRotations[i],
-            duration: 1,
-            ease: "power2.out",
-          },
-          i * 0.7,
-        );
-      });
-
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: "top top",
-        end: () => `+=${n * window.innerHeight * 0.7}`,
-        pin: true,
-        scrub: 1,
-        animation: masterTl,
-      });
-    },
-    { scope: sectionRef },
-  );
-
-  // ---- hover: purely cosmetic (scale + shadow only) — never touches y, rotate or zIndex,
-  // so it can never fight with a neighbouring card's layering. This is what removes the glitch. ----
-  const handleEnter = (i) => {
-    gsap.to(cardsRef.current[i], {
-      scale: 1.03,
-      boxShadow: "0 20px 45px rgba(0,0,0,0.4)",
-      duration: 0.3,
-      ease: "power2.out",
-      overwrite: "auto",
-    });
-  };
-
-  const handleLeave = (i) => {
-    // don't fight the "lifted to top" state if this card is the active one
-    if (activeIndexRef.current === i) return;
-
-    gsap.to(cardsRef.current[i], {
-      scale: 1,
-      boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-      duration: 0.3,
-      ease: "power2.out",
-      overwrite: "auto",
-    });
-  };
-
-  // ---- click: smoothly bring THIS card to the top, settle the previous one back down,
-  // then open the detail overlay. State-driven, so there's no mouse-position race. ----
-  const bringToTop = (i) => {
-    const prev = activeIndexRef.current;
-
-    if (prev !== null && prev !== i) {
-      gsap.to(cardsRef.current[prev], {
-        y: 0,
-        rotate: baseRotations[prev],
-        scale: 1,
-        boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-        duration: 0.5,
-        ease: "power3.inOut",
-        overwrite: "auto",
-        onComplete: () => gsap.set(cardsRef.current[prev], { zIndex: prev + 1 }),
-      });
-    }
-
-    activeIndexRef.current = i;
-    gsap.set(cardsRef.current[i], { zIndex: 200 });
-    gsap.to(cardsRef.current[i], {
-      y: -40,
-      rotate: 0,
-      scale: 1.08,
-      boxShadow: "0 30px 60px rgba(0,0,0,0.5)",
-      duration: 0.5,
-      ease: "power3.out",
-      overwrite: "auto",
-    });
-  };
-
-  const handleCardClick = (cert, index) => {
-    bringToTop(index);
-    setActiveCert(cert);
-  };
-
-  // ---- detail overlay: animates in whenever a cert is selected; settles the lifted card
-  // back into the stack once the overlay is closed ----
-  useEffect(() => {
-    if (!activeCert) return;
-
-    document.body.style.overflow = "hidden";
-
-    gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" });
-    gsap.fromTo(
-      overlayCardRef.current,
-      { opacity: 0, y: 40, scale: 0.94 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)", delay: 0.05 },
-    );
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [activeCert]);
-
-  const closeOverlay = () => {
-    setActiveCert(null);
-
-    const i = activeIndexRef.current;
-    if (i === null) return;
-
-    gsap.to(cardsRef.current[i], {
-      y: 0,
-      rotate: baseRotations[i],
-      scale: 1,
-      boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-      duration: 0.5,
-      ease: "power3.inOut",
-      overwrite: "auto",
-      onComplete: () => gsap.set(cardsRef.current[i], { zIndex: i + 1 }),
-    });
-    activeIndexRef.current = null;
-  };
-
-  return (
-    <section
-      ref={sectionRef}
-      id="certifications"
-      className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-bg px-4 text-ink md:px-6"
-    >
-      {/* BIG BACKGROUND NUMBER */}
-      <div
-        className="pointer-events-none absolute -top-6 left-1/2 z-0 -translate-x-1/2 select-none font-bold text-ink"
-        style={{ fontSize: "min(38vw, 300px)", opacity: 0.05, lineHeight: 1, letterSpacing: "-0.05em" }}
-      >
-        05
-      </div>
-
-      {/* soft radial glow behind the stack, adds depth instead of flat empty black */}
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[70vh] w-[70vh] -translate-x-1/2 -translate-y-1/2 rounded-full"
+  // Real certificate image (when provided and it loads)
+  if (cert.image && !imageFailed) {
+    const image = (
+      <img
+        src={cert.image}
+        alt={`${cert.title} certificate from ${cert.issuer}, ${cert.year}`}
+        loading={large ? "eager" : "lazy"}
+        onError={() => setImageFailed(true)}
         style={{
-          background:
-            "radial-gradient(circle, color-mix(in oklab, var(--color-accent2) 12%, transparent) 0%, transparent 70%)",
+          display: "block",
+          width: "100%",
+          height: large ? "auto" : "100%",
+          objectFit: large ? "contain" : "cover",
+          objectPosition: "top",
         }}
       />
+    );
 
-      {/* HEADER */}
-      <div className="absolute top-10 left-4 z-10 flex items-center gap-3 font-mono text-[10px] tracking-widest text-muted md:left-6 md:text-[11px]">
-        <span className="text-xs">( 05 )</span>
-        <span className="h-px w-10 bg-line" />
-        <span className="text-xs">CERTIFICATIONS</span>
-      </div>
-
-      {/* top-right counter */}
-      <div className="absolute top-10 right-4 z-10 text-right font-mono text-[10px] tracking-widest text-muted md:right-6 md:text-[11px]">
-        <span className="text-ink">{String(n).padStart(2, "0")}</span> credentials earned
-      </div>
-
-      {/* short supporting line */}
-      <p className="absolute top-24 left-4 z-10 max-w-xs font-display text-lg font-bold leading-snug tracking-tight text-ink/90 md:left-6 md:top-28 md:max-w-sm md:text-2xl">
-        Courses and credentials that shaped how I build.
-      </p>
-
-      {/* CARD FAN */}
+    return (
       <div
-        ref={stackRef}
-        className="relative z-10 mx-auto mt-16 md:mt-0"
-        style={{ width: "min(96vw, 900px)", height: "min(70vh, 560px)" }}
+        className={`certificate-art ${large ? "certificate-art-large" : ""}`}
+        style={{
+          padding: 0,
+          overflow: "hidden",
+          ...(large ? { height: "auto", aspectRatio: "auto", background: "#fff" } : {}),
+        }}
       >
-        {certifications.map((cert, index) => (
-          <div
-            key={cert.id}
-            ref={(el) => {
-              cardsRef.current[index] = el;
-            }}
-            onMouseEnter={() => handleEnter(index)}
-            onMouseLeave={() => handleLeave(index)}
-            onClick={() => handleCardClick(cert, index)}
-            className="absolute left-1/2 top-1/2 flex w-72 cursor-pointer flex-col overflow-hidden rounded-2xl border border-line sm:w-72 md:w-72"
-            style={{
-              backgroundColor: "var(--color-surface)",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-              willChange: "transform",
-            }}
+        {large ? (
+          // click the big image to open the original file in a new tab (full resolution, can zoom)
+          <a
+            href={cert.image}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open the full-size certificate image in a new tab"
+            className="block cursor-zoom-in"
           >
-            <div className="relative h-44 w-full overflow-hidden sm:h-48 md:h-56">
-              <img src={cert.image} alt={cert.title} className="h-full w-full object-cover" draggable="false" />
-              <div
-                className="pointer-events-none absolute inset-0"
-                style={{ background: "linear-gradient(180deg, transparent 35%, var(--color-surface) 100%)" }}
-              />
-              <img
-                src={"https://cdn.simpleicons.org/" + cert.issuerSlug}
-                alt={cert.issuer}
-                className="absolute right-3 top-3 h-7 w-7 rounded-full bg-bg/80 p-1.5 object-contain"
-              />
-              <span className="absolute left-3 top-3 rounded-full bg-bg/80 px-2.5 py-1 font-mono text-[10px] tracking-widest text-muted">
-                {cert.id}
-              </span>
-            </div>
+            {image}
+          </a>
+        ) : (
+          image
+        )}
+      </div>
+    );
+  }
 
-            <div className="flex flex-1 flex-col justify-between p-5 md:p-6">
-              <h3 className="font-display text-xl font-bold leading-tight tracking-tight md:text-2xl">{cert.title}</h3>
-              <p className="mt-3 font-mono text-[10px] uppercase tracking-widest text-accent2">
-                {cert.issuer} — {cert.year}
-              </p>
-            </div>
+  // Original illustrative artwork (unchanged)
+  return (
+    <div
+      className={`certificate-art ${large ? "certificate-art-large" : ""}`}
+      role="img"
+      aria-label={`Illustrative course artwork for ${cert.title}, not the original credential`}
+    >
+      <div className="certificate-art-top">
+        <span>{cert.issuer}</span>
+        <span>{cert.year}</span>
+      </div>
+      <div className="certificate-art-seal" aria-hidden="true">
+        ✳
+      </div>
+      <div className="certificate-art-lines" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </div>
+      <span className="certificate-art-caption">COURSE PREVIEW</span>
+    </div>
+  );
+}
+
+export default function Certifications() {
+  const [selected, setSelected] = useState(null);
+  const closeButtonRef = useRef(null);
+  const returnFocusRef = useRef(null);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    if (!selected) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setSelected(null);
+      } else if (event.key === "Tab") {
+        // Keep focus inside the dialog; cycles between the close button and the links
+        const focusable = panelRef.current?.querySelectorAll("a[href], button:not([disabled])");
+        if (!focusable || focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        } else if (!panelRef.current.contains(document.activeElement)) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+      returnFocusRef.current?.focus();
+    };
+  }, [selected]);
+
+  return (
+    <section id="certifications" className="section-shell bg-surface px-6 py-24 text-ink md:px-12 md:py-32">
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <div className="section-kicker">
+            <span>04</span>
+            <i /> CERTIFICATIONS
           </div>
-        ))}
+          <div className="mb-11 mt-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <h2 className="section-heading max-w-2xl">Learning, one step at a time.</h2>
+            <p className="max-w-sm text-sm leading-6 text-muted">
+              Courses and learning milestones that have helped shape my development journey.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="certificate-grid grid gap-4 sm:grid-cols-2">
+          {certifications.map((cert, index) => (
+            <Reveal key={cert.title} delay={index * 70} className="h-full">
+              <article className="certificate-card flex h-full flex-col rounded-2xl border border-line bg-bg p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-5">
+                <CertificateArtwork cert={cert} />
+                <div className="min-w-0 flex-1 pt-4 sm:pt-0">
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted">{cert.issuer}</p>
+                    <span className="font-mono text-[10px] text-muted">{cert.year}</span>
+                  </div>
+                  <h3 className="mt-2 font-display text-base font-semibold leading-snug">{cert.title}</h3>
+                  <p className="mt-2 text-xs leading-5 text-muted">{cert.description}</p>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      returnFocusRef.current = event.currentTarget;
+                      setSelected(cert);
+                    }}
+                    className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-accent hover:gap-3"
+                    aria-haspopup="dialog"
+                  >
+                    View details <span aria-hidden="true">↗</span>
+                  </button>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
       </div>
 
-      <p className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 font-mono text-[10px] uppercase tracking-widest text-muted">
-        click a card for details
-      </p>
-
-      {/* DETAIL OVERLAY */}
-      {activeCert && (
+      {selected && (
         <div
-          ref={overlayRef}
-          onClick={closeOverlay}
-          className="fixed inset-0 z-40 flex items-center justify-center bg-bg/80 px-4 backdrop-blur-md"
+          className="dialog-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelected(null);
+          }}
         >
-          <div
-            ref={overlayCardRef}
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-line"
-            style={{ backgroundColor: "var(--color-surface)" }}
+          <section
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="certificate-title"
+            className="certificate-dialog-panel"
+            // wide enough to read the certificate text (the default panel was only 32rem)
+            style={{ width: "min(100%, 62rem)" }}
           >
-            <div className="relative h-52 w-full md:h-64">
-              <img
-                src={activeCert.image}
-                alt={activeCert.title}
-                className="h-full w-full object-cover"
-                draggable="false"
-              />
-              <div
-                className="pointer-events-none absolute inset-0"
-                style={{ background: "linear-gradient(180deg, transparent 50%, var(--color-surface) 100%)" }}
-              />
+            <div className="flex items-center justify-between gap-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-accent">Course details</p>
               <button
-                onClick={closeOverlay}
-                className="absolute right-4 top-4 rounded-full bg-bg/80 px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-ink transition-colors hover:bg-bg"
+                ref={closeButtonRef}
+                type="button"
+                onClick={() => setSelected(null)}
+                aria-label="Close certificate details"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-muted hover:text-ink"
               >
-                Close ✕
+                <span aria-hidden="true">×</span>
               </button>
             </div>
 
-            <div className="p-8 md:p-10">
-              <div className="flex items-center gap-3">
-                <img
-                  src={"https://cdn.simpleicons.org/" + activeCert.issuerSlug}
-                  alt={activeCert.issuer}
-                  className="h-8 w-8 object-contain"
-                />
-                <span className="font-mono text-xs uppercase tracking-widest text-accent2">
-                  {activeCert.issuer} — {activeCert.year}
-                </span>
-              </div>
-
-              <h3 className="mt-5 font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
-                {activeCert.title}
-              </h3>
-
-              <p className="mt-4 text-sm leading-relaxed text-muted">{activeCert.description}</p>
-
+            <CertificateArtwork cert={selected} large />
+            {selected.image ? (
               <a
-                href={activeCert.link}
+                href={selected.image}
                 target="_blank"
-                rel="noreferrer"
-                className="mt-8 inline-block rounded-full border border-accent2/50 px-5 py-2 font-mono text-xs uppercase tracking-widest text-accent2 transition-colors hover:bg-accent2 hover:text-bg"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-accent hover:gap-3"
               >
-                View credential →
+                Open full-size image <span aria-hidden="true">↗</span>
               </a>
+            ) : (
+              ""
+            )}
+
+            <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.16em] text-accent">
+              {selected.issuer} <span className="px-1 text-muted">·</span> {selected.year}
+            </p>
+            <h3
+              id="certificate-title"
+              className="mt-3 font-display text-2xl font-semibold leading-tight tracking-tight sm:text-3xl"
+            >
+              {selected.title}
+            </h3>
+            <p className="mt-4 text-sm leading-6 text-muted">{selected.description}</p>
+
+            <div className="mt-7 border-t border-line pt-5">
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Topics covered</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {selected.focus.map((topic) => (
+                  <span key={topic} className="rounded-full border border-line bg-bg px-3 py-1.5 text-xs text-muted">
+                    {topic}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+
+            {/* Credential link / ID, falls back to the original note when neither is added */}
+            {selected.link || selected.credentialId ? (
+              <div className="mt-7 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-line pt-5">
+                {selected.credentialId && (
+                  <p className="text-xs leading-5 text-muted">
+                    Credential ID: <span className="font-mono text-ink">{selected.credentialId}</span>
+                  </p>
+                )}
+                {selected.link && (
+                  <a
+                    href={selected.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-xs font-semibold text-accent hover:gap-3"
+                  >
+                    View credential <span aria-hidden="true">↗</span>
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className="mt-7 text-xs leading-5 text-muted">
+                Certificate link and credential ID have not been added yet.
+              </p>
+            )}
+          </section>
         </div>
       )}
     </section>

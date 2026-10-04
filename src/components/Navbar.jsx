@@ -1,49 +1,24 @@
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
+import { useEffect, useState } from "react";
 import Logo from "./Logo";
-import { useGSAP } from "@gsap/react";
 
-const Navbar = () => {
-  const [dark, setDark] = useState(true);
+const links = [
+  { label: "About", href: "#about" },
+  { label: "Work", href: "#work" },
+  { label: "Skills", href: "#skills" },
+  { label: "Certifications", href: "#certifications" },
+  { label: "Contact", href: "#contact" },
+];
+
+export default function Navbar() {
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    return saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const navRef = useRef(null);
-  const navItemsRef = useRef([]);
-  const mobileMenuRef = useRef(null);
-
   useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    const isDark = saved ? saved === "dark" : true;
-    setDark(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-  }, []);
-
-  useGSAP(() => {
-    if (!mobileMenuRef.current) return;
-
-    if (menuOpen) {
-      gsap.fromTo(
-        mobileMenuRef.current,
-        {
-          height: 0,
-          opacity: 0,
-        },
-        {
-          height: "auto",
-          opacity: 1,
-          duration: 0.4,
-          ease: "power3.out",
-        },
-      );
-    } else {
-      gsap.to(mobileMenuRef.current, {
-        height: 0,
-        opacity: 0,
-        duration: 0.3,
-        ease: "power3.inOut",
-      });
-    }
-  }, [menuOpen]);
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
 
   const toggleTheme = () => {
     const next = !dark;
@@ -52,145 +27,63 @@ const Navbar = () => {
     localStorage.setItem("theme", next ? "dark" : "light");
   };
 
-  const closeMenu = () => {
-    setMenuOpen(false);
-  };
-
   return (
-    <nav
-      ref={navRef}
-      className="
-        absolute top-0 left-0 right-0 z-30
-        backdrop-blur-sm bg-bg/40
-        px-6 md:px-12
-        py-5
-      "
-    >
-      <div className="flex items-center justify-between">
+    <nav className="site-nav fixed left-0 right-0 top-0 z-50 px-4 pt-4 md:px-8" aria-label="Main navigation">
+      <div className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-line/80 bg-bg/85 px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6">
         <Logo />
 
-        {/* DESKTOP NAV */}
-        <div className="hidden md:flex items-center gap-8">
-          <a
-            ref={(el) => (navItemsRef.current[0] = el)}
-            href="#work"
-            className="nav-link text-sm text-muted hover:text-ink transition-colors"
-          >
-            Work
-          </a>
-
-          <a
-            ref={(el) => (navItemsRef.current[1] = el)}
-            href="#about"
-            className="nav-link text-sm text-muted hover:text-ink transition-colors"
-          >
-            About
-          </a>
-
-          <a
-            ref={(el) => (navItemsRef.current[2] = el)}
-            href="#certifications"
-            className="nav-link text-sm text-muted hover:text-ink transition-colors"
-          >
-            Certifications
-          </a>
-
-          <a
-            ref={(el) => (navItemsRef.current[3] = el)}
-            href="#contact"
-            className="nav-link text-sm text-muted hover:text-ink transition-colors"
-          >
-            Contact
-          </a>
-
+        <div className="hidden items-center gap-7 md:flex">
+          {links.map((link) => (
+            <a key={link.href} href={link.href} className="nav-link text-sm text-muted hover:text-ink">
+              {link.label}
+            </a>
+          ))}
           <button
             onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="w-12 h-7 rounded-full border border-line relative"
+            aria-label={`Switch to ${dark ? "light" : "dark"} theme`}
+            className="theme-toggle"
+            type="button"
           >
-            <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-ink text-[10px] flex items-center justify-center transition-transform duration-300 ${
-                dark ? "translate-x-0" : "translate-x-5"
-              }`}
-            >
-              {dark ? "🌙" : "☀️"}
-            </span>
+            <span aria-hidden="true">{dark ? "☼" : "◐"}</span>
           </button>
         </div>
 
-        {/* MOBILE CONTROLS */}
-        <div className="flex md:hidden items-center gap-3">
+        <div className="flex items-center gap-3 md:hidden">
           <button
             onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="w-12 h-7 rounded-full border border-line relative"
+            aria-label={`Switch to ${dark ? "light" : "dark"} theme`}
+            className="theme-toggle"
+            type="button"
           >
-            <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-ink text-[10px] flex items-center justify-center transition-transform duration-300 ${
-                dark ? "translate-x-0" : "translate-x-5"
-              }`}
-            >
-              {dark ? "🌙" : "☀️"}
-            </span>
+            <span aria-hidden="true">{dark ? "☼" : "◐"}</span>
           </button>
-
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={menuOpen}
-            className="relative flex h-8 w-8 flex-col items-center justify-center gap-1.5"
+            aria-controls="mobile-navigation"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-line text-ink"
+            type="button"
           >
-            <span
-              className={`h-px w-6 bg-ink transition-all duration-300 ${menuOpen ? "translate-y-2 rotate-45" : ""}`}
-            />
-
-            <span className={`h-px w-6 bg-ink transition-all duration-300 ${menuOpen ? "opacity-0" : ""}`} />
-
-            <span
-              className={`h-px w-6 bg-ink transition-all duration-300 ${menuOpen ? "-translate-y-1.5 -rotate-45" : ""}`}
-            />
+            <span aria-hidden="true">{menuOpen ? "×" : "☰"}</span>
           </button>
         </div>
       </div>
 
-      {/* MOBILE MENU */}
-      <div
-        ref={mobileMenuRef}
-        className="
-          md:hidden
-          overflow-hidden
-          h-0
-          opacity-0
-        "
-      >
-        <div className="flex flex-col items-end gap-5 pt-8 pb-4">
-          <a href="#work" onClick={closeMenu} className="nav-link text-sm text-muted hover:text-ink transition-colors">
-            Work
-          </a>
-
-          <a href="#about" onClick={closeMenu} className="nav-link text-sm text-muted hover:text-ink transition-colors">
-            About
-          </a>
-
-          <a
-            href="#certifications"
-            onClick={closeMenu}
-            className="nav-link text-sm text-muted hover:text-ink transition-colors"
-          >
-            Certifications
-          </a>
-
-          <a
-            href="#contact"
-            onClick={closeMenu}
-            className="nav-link text-sm text-muted hover:text-ink transition-colors"
-          >
-            Contact
-          </a>
+      {menuOpen && (
+        <div id="mobile-navigation" className="mx-4 mt-2 rounded-2xl border border-line bg-bg p-3 shadow-lg md:hidden">
+          {links.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="block rounded-xl px-4 py-3 text-sm text-muted transition-colors hover:bg-surface hover:text-ink"
+            >
+              {link.label}
+            </a>
+          ))}
         </div>
-      </div>
+      )}
     </nav>
   );
-};
-
-export default Navbar;
+}

@@ -1,120 +1,148 @@
-import { useRef, useLayoutEffect } from "react";
-import { gsap } from "gsap";
+import { useEffect, useRef, useState } from "react";
 
-// Rendered by Projects.jsx when a project is clicked:
-//   {selected && <ProjectDetail project={selected} onClose={...} />}
-//
-// Full-screen overlay, not a real route — swap for React Router /
-// Next.js dynamic route later if you want a real URL per project
-// (the `slug` field on each project object is there for exactly that).
+export default function ProjectDetail({ project, onClose, returnFocusRef }) {
+  const dialogRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const [imageFailed, setImageFailed] = useState(false);
 
-export default function ProjectDetail({ project, onClose }) {
-  const overlayRef = useRef(null);
-  const panelRef = useRef(null);
-  const imgRefs = useRef([]);
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const returnFocusElement = returnFocusRef.current;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
 
-  useLayoutEffect(() => {
+      if (event.key === "Tab") {
+        // Keep focus inside the dialog; cycle through the close button and project links
+        const focusable = dialogRef.current?.querySelectorAll("a[href], button:not([disabled])");
+        if (!focusable || focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        } else if (!dialogRef.current.contains(document.activeElement)) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
     document.body.style.overflow = "hidden";
-
-    const tl = gsap.timeline();
-    tl.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" })
-      .fromTo(
-        panelRef.current,
-        { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" },
-        "-=0.15",
-      )
-      .fromTo(
-        imgRefs.current,
-        { opacity: 0, y: 24, scale: 0.94 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.1, ease: "power3.out" },
-        "-=0.25",
-      );
+    closeButtonRef.current?.focus();
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+      returnFocusElement?.focus();
     };
-  }, [project]);
-
-  const handleClose = () => {
-    gsap.to(panelRef.current, { y: 30, opacity: 0, duration: 0.3, ease: "power2.in" });
-    gsap.to(overlayRef.current, {
-      opacity: 0,
-      duration: 0.35,
-      ease: "power2.in",
-      delay: 0.05,
-      onComplete: onClose,
-    });
-  };
+  }, [onClose, returnFocusRef]);
 
   return (
     <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm overflow-y-auto"
-      onClick={(e) => e.target === overlayRef.current && handleClose()}
+      className="dialog-overlay"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
     >
-      <div ref={panelRef} className="max-w-5xl mx-auto px-6 md:px-10 py-16 md:py-24">
-        {/* close */}
-        <button
-          onClick={handleClose}
-          className="fixed top-6 right-6 md:top-10 md:right-10 w-11 h-11 rounded-full border border-line bg-bg text-ink flex items-center justify-center z-10 hover:border-accent hover:text-accent transition-colors"
-          aria-label="Close project detail"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M2 2L14 14M14 2L2 14" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
-        </button>
-
-        {/* meta row */}
-        <div className="flex items-center gap-3 mb-6 font-mono text-xs tracking-widest text-muted">
-          <span>( {project.id} )</span>
-          <span className="h-px w-10 bg-line"></span>
-          <span>{project.category.toUpperCase()}</span>
-        </div>
-
-        {/* title */}
-        <h2 className="font-display font-bold text-5xl md:text-7xl lowercase tracking-tight text-ink">
-          {project.title}
-        </h2>
-
-        {/* tags + year */}
-        <div className="flex flex-wrap items-center gap-3 mt-6">
-          {project.tags.map((t) => (
-            <span key={t} className="font-mono text-xs px-3 py-1.5 rounded-full border border-line text-muted">
-              {t}
-            </span>
-          ))}
-          <span className="font-mono text-xs text-muted ml-auto">{project.year}</span>
-        </div>
-
-        {/* description */}
-        <p className="text-muted max-w-2xl mt-8 leading-relaxed text-[15px]">{project.description}</p>
-
-        {project.link && project.link !== "#" && (
-          <a
-            href={project.link}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 mt-8 px-5 py-2.5 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent transition-colors"
-          >
-            Visit project →
-          </a>
-        )}
-
-        {/* image gallery — reuses each image's own rotate value from the data */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-14">
-          {project.images.map((img, i) => (
-            <div
-              key={i}
-              ref={(el) => (imgRefs.current[i] = el)}
-              className="rounded-xl overflow-hidden border border-line"
-              style={{ transform: `rotate(${img.rotate / 4}deg)` }}
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="project-detail-title"
+        ref={dialogRef}
+        className="project-dialog"
+      >
+        <div className="flex items-start justify-between gap-5">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-accent">
+              Project focus <span className="px-1 text-muted">·</span> {project.category}
+            </p>
+            <h3
+              id="project-detail-title"
+              className="mt-3 font-display text-2xl font-semibold leading-tight tracking-tight sm:text-3xl"
             >
-              <img src={img.url} alt="" className="w-full h-full object-cover aspect-square" />
-            </div>
-          ))}
+              {project.title}
+            </h3>
+          </div>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={onClose}
+            aria-label="Close project details"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-muted hover:text-ink"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
         </div>
-      </div>
+
+        {/* Real project screenshot (replaces ProjectVisual) */}
+        <div className="mt-6 aspect-[16/10] w-full overflow-hidden rounded-2xl border border-line bg-bg">
+          {project.image && !imageFailed ? (
+            <img
+              src={project.image}
+              alt={`${project.title} screenshot`}
+              onError={() => setImageFailed(true)}
+              className="h-full w-full object-cover object-top"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+              Project image coming soon
+            </div>
+          )}
+        </div>
+
+        <p className="mt-6 text-sm leading-6 text-muted">{project.description}</p>
+
+        <div className="mt-7 grid gap-6 border-t border-line pt-6 sm:grid-cols-2">
+          <div>
+            <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted">Areas of focus</h4>
+            <ul className="mt-3 space-y-2.5">
+              {project.details.map((detail) => (
+                <li key={detail} className="flex gap-2 text-sm text-ink">
+                  <span className="text-accent" aria-hidden="true">
+                    ↗
+                  </span>
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted">Related technologies</h4>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {project.tags.map((tag) => (
+                <span key={tag} className="rounded-full border border-line bg-bg px-3 py-1.5 text-xs text-muted">
+                  {tag}
+                </span>
+              ))}
+            </div>
+            {project.liveUrl || project.githubUrl ? (
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                {project.liveUrl && (
+                  <a className="button-primary" href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                    Live demo <span aria-hidden="true">↗</span>
+                  </a>
+                )}
+                {project.githubUrl && (
+                  <a className="button-secondary" href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+                    GitHub <span aria-hidden="true">↗</span>
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className="mt-4 text-xs leading-5 text-muted">
+                Add a project link or live demo when one is available.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

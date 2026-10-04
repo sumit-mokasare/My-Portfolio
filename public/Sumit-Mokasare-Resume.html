@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Sumit Mokasare — Resume</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #18251f;
+        --muted: #57675f;
+        --line: #dbe5de;
+        --accent: #4963c7;
+        --mint: #eaf3ed;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #eef2ef;
+        color: var(--ink);
+        font:
+          14px/1.55 Arial,
+          Helvetica,
+          sans-serif;
+      }
+      .sheet {
+        width: min(100%, 850px);
+        min-height: 1100px;
+        margin: 24px auto;
+        padding: 54px 60px;
+        background: white;
+        box-shadow: 0 16px 50px rgb(18 32 24 / 12%);
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: flex-start;
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 22px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+      }
+      .role {
+        margin: 8px 0 0;
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .location {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .print-button {
+        border: 0;
+        border-radius: 999px;
+        background: var(--ink);
+        color: white;
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        padding: 10px 16px;
+      }
+      .intro {
+        margin: 20px 0 24px;
+        color: var(--muted);
+      }
+      section {
+        margin-top: 23px;
+      }
+      h2 {
+        margin: 0 0 11px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 7px;
+        color: var(--accent);
+        font-size: 12px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+      h3 {
+        margin: 0;
+        font-size: 14px;
+      }
+      p {
+        margin: 5px 0 0;
+        color: var(--muted);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 28px;
+      }
+      .item {
+        break-inside: avoid;
+      }
+      .item ul {
+        margin: 6px 0 0;
+        padding-left: 18px;
+        color: var(--muted);
+      }
+      .item li {
+        margin: 2px 0;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .chips span {
+        border-radius: 999px;
+        background: var(--mint);
+        color: var(--ink);
+        font-size: 11px;
+        padding: 5px 9px;
+      }
+      .project {
+        margin-top: 11px;
+      }
+      .project strong {
+        color: var(--ink);
+      }
+      .project p {
+        font-size: 12px;
+      }
+      .objective {
+        border-left: 3px solid var(--accent);
+        background: #f7f9f7;
+        padding: 12px 15px;
+      }
+      .journey {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 24px;
+      }
+      .journey p {
+        position: relative;
+        padding-left: 13px;
+        font-size: 12px;
+      }
+      .journey p::before {
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        content: "•";
+      }
+      @media (max-width: 640px) {
+        .sheet {
+          min-height: 100vh;
+          margin: 0;
+          padding: 28px 22px;
+        }
+        header {
+          flex-direction: column;
+        }
+        .grid,
+        .journey {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media print {
+        @page {
+          size: A4;
+          margin: 13mm;
+        }
+        body {
+          background: white;
+          font-size: 10pt;
+        }
+        .sheet {
+          width: auto;
+          min-height: auto;
+          margin: 0;
+          padding: 0;
+          box-shadow: none;
+        }
+        .print-button {
+          display: none;
+        }
+        section {
+          margin-top: 16px;
+        }
+        .item li {
+          margin: 1px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="sheet">
+      <header>
+        <div>
+          <h1>Sumit Mokasare</h1>
+          <p class="role">Full Stack Developer · AI Enthusiast</p>
+          <p class="location">BCA Student · Nagpur, India · Seeking internship and entry-level opportunities</p>
+        </div>
+        <button class="print-button" type="button" onclick="window.print()">Print / Save as PDF</button>
+      </header>
+
+      <p class="intro">
+        Aspiring Full Stack Developer building modern web applications with React, Node.js, Express, MongoDB,
+        PostgreSQL, and Docker. Exploring Generative AI to create intelligent, scalable software. Interested in solving
+        real-world problems through clean code, thoughtful design, and continuous learning.
+      </p>
+
+      <section>
+        <h2>Technical Skills</h2>
+        <div class="grid">
+          <div class="item">
+            <h3>Frontend</h3>
+            <p>HTML5, CSS3, JavaScript (ES6+), React.js, Tailwind CSS, Bootstrap, Vite</p>
+          </div>
+          <div class="item">
+            <h3>Backend</h3>
+            <p>Node.js, Express.js, REST API development, JWT authentication, OAuth, Multer, Cloudinary</p>
+          </div>
+          <div class="item">
+            <h3>Database</h3>
+            <p>MongoDB, PostgreSQL, Prisma ORM, Mongoose</p>
+          </div>
+          <div class="item">
+            <h3>Tools & Platforms</h3>
+            <p>Git, GitHub, Docker, Postman, VS Code, Figma</p>
+          </div>
+          <div class="item">
+            <h3>Currently learning</h3>
+            <p>Generative AI, LangChain, AI Agents, RAG, vector databases, prompt engineering</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Featured Projects</h2>
+        <div class="project">
+          <h3>Task Management Platform</h3>
+          <p>
+            A full-stack project management application for team planning and collaboration. Features authentication,
+            role-based authorization, project/task/subtask management, file uploads, and dashboard analytics.
+          </p>
+          <p><strong>Stack:</strong> React, Node.js, Express, MongoDB, Tailwind CSS</p>
+        </div>
+        <div class="project">
+          <h3>AI Chat Application</h3>
+          <p>
+            An AI chatbot for natural conversations with large language models, with chat history, Markdown support, and
+            a responsive conversation interface.
+          </p>
+          <p><strong>Stack:</strong> React, Node.js, OpenAI-compatible API, Tailwind CSS</p>
+        </div>
+        <div class="project">
+          <h3>Developer Portfolio</h3>
+          <p>
+            A responsive, dark-minimal portfolio with a Bento Grid-inspired project showcase, skills dashboard, and
+            contact section.
+          </p>
+          <p><strong>Stack:</strong> React, Tailwind CSS, Framer Motion</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Education & Experience</h2>
+        <div class="grid">
+          <div class="item">
+            <h3>Bachelor of Computer Applications (BCA)</h3>
+            <p>
+              Currently pursuing an undergraduate degree while learning full-stack development and Generative AI through
+              practical projects, self-learning, and online courses.
+            </p>
+          </div>
+          <div class="item">
+            <h3>Fresher · Aspiring Full Stack Developer</h3>
+            <p>
+              No professional industry experience yet. Personal projects provide hands-on practice with frontend and
+              backend development, authentication, databases, API design, and modern workflows.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Learning Journey</h2>
+        <div class="journey">
+          <p>Web fundamentals: HTML, CSS, and JavaScript.</p>
+          <p>React and modern frontend development.</p>
+          <p>Backend applications with Node.js and Express.</p>
+          <p>MongoDB, PostgreSQL, Prisma, and Mongoose.</p>
+          <p>Docker and containerized development.</p>
+          <p>Expanding into Generative AI, AI Agents, and LLM-powered applications.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Career Objective</h2>
+        <p class="objective">
+          Seeking an internship or entry-level role on a collaborative software development team to contribute to
+          real-world products, learn from experienced engineers, and grow into a well-rounded developer with expertise
+          in AI-powered applications.
+        </p>
+      </section>
+
+      <section>
+        <h2>Strengths</h2>
+        <div class="chips">
+          <span>Continuous learning</span><span>Full-stack development</span><span>Clean, maintainable code</span>
+          <span>Frontend and backend</span><span>Generative AI</span><span>Problem solving</span>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

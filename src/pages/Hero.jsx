@@ -1,248 +1,88 @@
-import { useGSAP } from "@gsap/react";
-import AvatarCanvas from "../components/AvatarCanvas";
-import Button from "../components/Button";
-import FloatingShapes from "../components/FloatingShapes";
+import { useCallback, useRef, useState } from "react";
 import Navbar from "../components/Navbar";
-import { SplitText, ScrollTrigger } from "gsap/all";
-import gsap from "gsap";
-import { useState, useRef } from "react";
-gsap.registerPlugin(SplitText, ScrollTrigger);
+import ResumeDialog from "../components/ResumeDialog";
+import PhotoCard from "../components/PhotoCard";
 
-function Hero() {
-  const [avatarLoading, setAvatarLoading] = useState(true);
-  const heroRef = useRef();
-  useGSAP(
-    () => {
-      const gradientCSS =
-        "linear-gradient(90deg, var(--color-ink) 0%, var(--color-accent2) 50%, var(--color-ink) 100%)";
+export default function Hero() {
+  const [resumeOpen, setResumeOpen] = useState(false);
+  const resumeButtonRef = useRef(null);
+  const closeResume = useCallback(() => setResumeOpen(false), []);
 
-      const titleSplite = SplitText.create(".title-heading", {
-        type: "chars",
-        onSplit: (self) => {
-          self.chars.forEach((char) => {
-            const parentLine = char.closest("h1") || char.parentElement;
-            const lineWidth = parentLine.offsetWidth;
-
-            char.style.backgroundImage = gradientCSS;
-            char.style.WebkitBackgroundClip = "text";
-            char.style.backgroundClip = "text";
-            char.style.color = "transparent";
-            char.style.backgroundSize = `${lineWidth}px 100%`;
-            char.style.backgroundPosition = `-${char.offsetLeft}px 0`;
-          });
-        },
-      });
-
-      const tl = gsap.timeline({
-        delay: 1,
-      });
-
-      tl.to(".hero-content", {
-        y: -20,
-        duration: 0.7,
-        opacity: 1,
-        ease: "power1.inOut",
-      })
-        .from(".navbar", {
-          y: -30,
-          opacity: 0,
-          duration: 0.7,
-          ease: "power3.out",
-        })
-
-        .from(
-          titleSplite.chars,
-          {
-            yPercent: 200,
-            opacity: 0,
-            stagger: 0.02,
-            duration: 0.8,
-            ease: "power3.out",
-          },
-          "-=0.4",
-        )
-        .from(
-          ".floating-shapes",
-          {
-            opacity: 0,
-            duration: 1,
-            ease: "power2.out",
-          },
-          "-=0.2",
-        )
-        // Subtitle
-        .from(
-          ".hero-subtitle",
-          {
-            y: 20,
-            opacity: 0,
-            duration: 0.6,
-            ease: "power2.out",
-          },
-          "-=0.35",
-        )
-        // Description
-        .from(
-          ".hero-description",
-          {
-            y: 15,
-            opacity: 0,
-            duration: 0.5,
-            ease: "power2.out",
-          },
-          "-=0.3",
-        )
-        // Buttons
-        .from(
-          ".hero-buttons",
-          {
-            y: 20,
-            opacity: 0,
-            duration: 0.6,
-            ease: "power2.out",
-          },
-          "-=0.25",
-        )
-        // Open to work
-        .from(
-          ".open-to-work",
-          {
-            y: -15,
-            opacity: 0,
-            scale: 0.95,
-            duration: 0.6,
-            ease: "back.out(1.7)",
-          },
-          "-=0.45",
-        );
-
-      // ---- Scroll Parallax ----
-      const parallaxTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: 1,
-        },
-      });
-
-      parallaxTl
-        .to(
-          ".title-heading",
-          {
-            yPercent: -40,
-            opacity: 0.15,
-            ease: "none",
-          },
-          0,
-        )
-        .to(
-          ".hero-avatar-layer",
-          {
-            yPercent: 15,
-            ease: "none",
-          },
-          0,
-        )
-        .to(
-          ".floating-shapes",
-          {
-            yPercent: 30,
-            ease: "none",
-          },
-          0,
-        )
-        .to(
-          ".hero-content",
-          {
-            yPercent: 20,
-            opacity: 0,
-            ease: "none",
-          },
-          0,
-        );
-    },
-    { scope: heroRef },
-  );
   return (
-    <div
-      ref={heroRef}
+    <section
       id="hero"
-      className="relative w-full overflow-hidden bg-bg text-ink font-display pointer-events-none min-h-screen lg:h-screen flex flex-col lg:block"
+      className="hero-section relative flex min-h-[100svh] flex-col overflow-hidden px-6 pb-5 pt-24 text-ink md:px-12"
     >
-      <div className="floating-shapes absolute inset-0 z-10 pointer-events-none">{/* <FloatingShapes /> */}</div>
-      {/* Heading — small/medium: normal flow, top of stack. lg+: absolute, wide, avatar ke peeche */}
-      <div className="order-1 mt-2 relative lg:absolute inset-x-0 lg:top-16 lg:md:top-20 z-0 pt-28 lg:pt-0 px-4 md:px-10 pointer-events-none overflow-hidden">
-        <h1 className="title-heading font-extrabold leading-[0.85] tracking-tight text-[12vw] sm:text-[12vw] md:text-[8vw] lg:text-[8vw] text-center">
-          HI, I'M SUMIT
-        </h1>
-      </div>
-
-      {/* Avatar — small/medium: normal flow block below content, fixed height. lg+: full-bleed background layer */}
-      <div className="hero-avatar-layer order-3 relative lg:absolute w-full h-[45vh] sm:h-[50vh] md:h-[55vh] lg:inset-0 lg:h-full z-10">
-        <AvatarCanvas onLoaded={() => setAvatarLoading(false)} />
-        {avatarLoading && (
-          <div className="absolute inset-0 flex items-center justify-center ">
-            <div className="flex items-center gap-3">
-              {/* Loading dots */}
-              <div className="flex gap-1">
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent2 [animation-delay:-0.3s]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent2 [animation-delay:-0.15s]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent2" />
-              </div>
-
-              <span className="text-xs uppercase tracking-[0.2em] text-muted">Loading avatar</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Navbar */}
-      <div className="navbar z-20 fixed top-0 left-0 right-0 w-full pointer-events-auto ">
+      <div className="z-50">
         <Navbar />
       </div>
+      <div className="hero-grid pointer-events-none absolute inset-0" aria-hidden="true" />
 
-      {/* OPEN TO WORK */}
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 content-center gap-9 py-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:gap-14 lg:py-4">
+        <div className="pointer-events-auto">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-2 text-xs font-medium text-muted shadow-sm">
+            <span className="relative flex size-3">
+              <span className="absolute inline-flex h-full w-full animate-ping! rounded-full bg-accent2 opacity-75"></span>
+              <span className="relative inline-flex size-3 rounded-full bg-accent2"></span>
+            </span>
+            Looking for internship opportunities
+          </div>
 
-      <div className="open-to-work absolute right-6 top-20 z-10 md:right-12 pointer-events-none">
-        <div className="group flex items-center gap-3 rounded-full border border-line bg-surface/60 px-4 py-2 backdrop-blur-md">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent2 opacity-60" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent2" />
-          </span>
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
+            Full Stack Developer <span className="px-1 text-muted">·</span> AI Enthusiast
+          </p>
+          <h1 className="max-w-3xl font-display text-5xl font-bold leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[clamp(3.5rem,6.4vw,5.25rem)]">
+            Sumit
+            <span className="block text-accent">Mokasare.</span>
+          </h1>
+          <p className="mt-5 max-w-xl text-sm leading-6 text-muted sm:text-base sm:leading-7">
+            I build modern web applications with React, Node.js, Express, MongoDB, PostgreSQL, and Docker, while
+            exploring Generative AI to create intelligent, scalable software. I enjoy solving real-world problems
+            through clean code, thoughtful design, and continuous learning.
+          </p>
 
-          <span className="text-xs font-medium uppercase tracking-[0.15em] text-ink">Open to work</span>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <a className="button-primary" href="#work">
+              Explore projects <span aria-hidden="true">↗</span>
+            </a>
+            <button
+              ref={resumeButtonRef}
+              type="button"
+              className="button-secondary"
+              onClick={() => setResumeOpen(true)}
+              aria-haspopup="dialog"
+            >
+              View resume <span aria-hidden="true">↗</span>
+            </button>
+            <a className="button-tertiary" href="#contact">
+              Let&apos;s connect
+            </a>
+          </div>
+
+          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-4 text-xs text-muted">
+            <span className="flex items-center gap-2">
+              <span className="text-accent">✳</span> BCA student
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-accent">✳</span> Internship-ready
+            </span>
+          </div>
+        </div>
+
+        {/* Photo card: grayscale by default, full colour on hover */}
+        <div className="pointer-events-auto flex justify-center lg:justify-end">
+          <PhotoCard src="/sumit.jpg" alt="Portrait of Sumit Mokasare" className="max-w-[20rem] sm:max-w-sm" />
         </div>
       </div>
 
-      {/* Bottom content — small/medium: normal flow, right after heading (still "up" with content). lg+: absolute, centered mid-screen over avatar */}
-      <div className="hero-content order-2 relative lg:absolute lg:top-1/2 lg:inset-0 z-20 lg:z-10 flex flex-col justify-center  mt-10 pb-8 lg:pb-20 md:lg:pb-28 px-6 md:px-12 pointer-events-none">
-        <div className="flex flex-col items-center gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="max-w-md">
-            <p className="hero-subtitle pointer-events-none font-voice font-bold text-accent2 text-lg md:text-2xl">
-              Fullstack developer building for the web
-            </p>
+      <a
+        href="#about"
+        className="relative z-10 mx-auto mt-1 inline-flex items-center gap-2 text-[11px] text-muted transition-colors hover:text-ink"
+      >
+        Scroll to explore <span aria-hidden="true">↓</span>
+      </a>
 
-            <p className="hero-description pointer-events-none font-voice  text-muted text-sm md:text-sm mt-2">
-              Building modern web applications with React, Node.js and Generative AI.
-            </p>
-          </div>
-
-          <div className="hero-buttons pointer-events-auto flex gap-4">
-            <Button data-cursor="view" variant="primary" href="#work">
-              View work
-            </Button>
-            <Button variant="secondary" href="#contact">
-              Say hello
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-6 left-6 md:left-12 right-6 md:right-12 z-20 flex justify-between text-xs text-muted pointer-events-none">
-        <span>scroll to explore ↓</span>
-      </div>
-    </div>
+      {resumeOpen && <ResumeDialog onClose={closeResume} returnFocusRef={resumeButtonRef} />}
+    </section>
   );
 }
-export default Hero;

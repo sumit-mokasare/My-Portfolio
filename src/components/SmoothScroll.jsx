@@ -7,43 +7,27 @@ gsap.registerPlugin(ScrollTrigger);
 
 export function SmoothScroll({ children }) {
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.05,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       touchMultiplier: 2,
+      anchors: { offset: -80, duration: 1.05 },
     });
     window.lenis = lenis;
-    // Lenis ko GSAP ke render loop (ticker) se sync karo — best performance
+    const raf = (time) => lenis.raf(time * 1000);
     lenis.on("scroll", ScrollTrigger.update);
-
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
+    gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
 
     return () => {
       lenis.destroy();
-      gsap.ticker.remove(lenis.raf);
+      gsap.ticker.remove(raf);
+      if (window.lenis === lenis) delete window.lenis;
     };
   }, []);
 
   return <>{children}</>;
-}
-
-export function scrollToSection(id) {
-  const target = document.querySelector(id);
-  if (!target) return;
-
-  if (window.lenis) {
-    window.lenis.scrollTo(target, {
-      offset: -80,
-      duration: 1.5,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      immediate: false, // yeh line zaroori hai — force karti hai ki jump na ho
-    });
-  } else {
-    // Lenis abhi mount nahi hua to bhi smooth scroll fallback
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
 }

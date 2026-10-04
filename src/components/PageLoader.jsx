@@ -1,140 +1,123 @@
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
+import { useEffect, useState } from "react";
+const RING_RADIUS = 54;
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+const SESSION_KEY = "portfolio-loader-seen";
 
-function PageLoader({ onComplete }) {
-  const loaderRef = useRef(null);
-  const titleRef = useRef(null);
-  const barRef = useRef(null);
-  const counterRef = useRef(null);
+const STATUS = [
+  { at: 0, text: "Initializing" },
+  { at: 30, text: "Loading assets" },
+  { at: 65, text: "Preparing interface" },
+  { at: 90, text: "Almost ready" },
+  { at: 100, text: "Welcome" },
+];
+
+export default function PageLoader({ onDone, minDuration = 2200 }) {
+  const [progress, setProgress] = useState(0);
+  const [exiting, setExiting] = useState(false);
+  const [skip] = useState(() => {
+    try {
+      return sessionStorage.getItem(SESSION_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
   useEffect(() => {
-    const counterObj = { value: 0 };
+    if (skip) {
+      onDone?.();
+      return undefined;
+    }
 
-    const tl = gsap.timeline({
-      defaults: {
-        ease: "power3.out",
-      },
-    });
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const duration = reduceMotion ? 4000 : minDuration;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-    // Title
-    tl.fromTo(
-      titleRef.current,
-      {
-        y: -30,
-        opacity: 0,
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        ease: "power3.out",
-      },
-    )
+    // Waits at 92% until the page has really finished loading
+    let loaded = document.readyState === "complete";
+    const onLoad = () => {
+      loaded = true;
+    };
+    window.addEventListener("load", onLoad);
 
-      // Counter
-      .to(counterObj, {
-        value: 100,
-        duration: 2.2,
-        ease: "power1.inOut",
+    let raf;
+    let exitTimer;
+    let doneTimer;
+    const start = performance.now();
 
-        onUpdate: () => {
-          const value = Math.ceil(counterObj.value);
+    const finish = () => {
+      document.body.style.overflow = previousOverflow;
+      try {
+        sessionStorage.setItem(SESSION_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+      onDone?.();
+    };
 
-          if (counterRef.current) {
-            counterRef.current.textContent = value + "%";
-          }
+    const tick = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const value = Math.min(eased * 100, loaded ? 100 : 92);
+      setProgress(value);
 
-          if (barRef.current) {
-            gsap.set(barRef.current, {
-              scaleX: value / 100,
-            });
-          }
-        },
-      })
+      if (value >= 100) {
+        exitTimer = setTimeout(() => setExiting(true), 350);
+        doneTimer = setTimeout(finish, 350 + 1300);
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
 
-      // Small pause
-      .to({}, { duration: 0.25 })
-
-      // Loader slides up
-      .to(loaderRef.current, {
-        yPercent: -100,
-        duration: 1.3,
-        ease: "power4.inOut",
-        force3D: true,
-        onComplete: () => {
-          onComplete?.();
-        },
-      });
+    raf = requestAnimationFrame(tick);
 
     return () => {
-      tl.kill();
+      cancelAnimationFrame(raf);
+      clearTimeout(exitTimer);
+      clearTimeout(doneTimer);
+      window.removeEventListener("load", onLoad);
+      document.body.style.overflow = previousOverflow;
     };
-  }, [onComplete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (skip) return null;
+
+  const status = [...STATUS].reverse().find((item) => progress >= item.at) ?? STATUS[0];
 
   return (
-    <div
-      ref={loaderRef}
-      className="
-        fixed inset-0 z-50
-        flex flex-col items-center justify-center
-        gap-8
-        bg-bg text-ink
-         transform-gpu
-    will-change-transform"
-    >
-      {/* TITLE */}
+    <div className={`pl-root ${exiting ? "is-exiting" : ""}`} aria-busy={!exiting} aria-label="Loading portfolio">
+      <div className="pl-panel pl-panel--top" />
+      <div className="pl-panel pl-panel--bottom" />
 
-      <h1
-        ref={titleRef}
-        className="
-          text-center
-          text-4xl
-          font-bold
-          tracking-tight
-          sm:text-6xl
-          md:text-7xl
-        "
-      >
-        Full Stack <span className="text-accent">Developer</span>
-      </h1>
-
-      {/* LOADING */}
-
-      <div className="flex w-56 flex-col items-center gap-3 sm:w-72">
-        {/* BAR */}
-
-        <div className="h-3 w-full overflow-hidden bg-line">
-          <div
-            ref={barRef}
-            className="
-              h-full
-              w-full
-              origin-left
-              scale-x-0
-              bg-accent
-            "
-          />
+      <div className="pl-center pl-fade">
+        <div className="pl-ring">
+          <svg viewBox="0 0 120 120" className="pl-ring-svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="pl-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="var(--accent)" />
+                <stop offset="100%" stopColor="var(--accent2)" />
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r={RING_RADIUS} className="pl-ring-track" />
+            <circle
+              cx="60"
+              cy="60"
+              r={RING_RADIUS}
+              className="pl-ring-progress"
+              strokeDasharray={RING_LENGTH}
+              strokeDashoffset={RING_LENGTH * (1 - progress / 100)}
+            />
+          </svg>
+          <span className="pl-monogram">SM</span>
         </div>
 
-        {/* COUNTER */}
-
-        <div className="flex w-full justify-between">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-muted">Loading</span>
-
-          <span ref={counterRef} className="text-xs font-medium tabular-nums text-ink">
-            0%
+        <p className="pl-status" role="status">
+          <span key={status.text} className="pl-status-text">
+            {status.text}
           </span>
-        </div>
-      </div>
-
-      {/* BOTTOM TEXT */}
-
-      <div className="absolute bottom-6 left-6 right-6 flex justify-between text-[10px] uppercase tracking-[0.2em] text-muted md:left-12 md:right-12">
-        <span>Sumit mokasare</span>
-
-        <span>2026</span>
+        </p>
       </div>
     </div>
   );
 }
-
-export default PageLoader;

@@ -1,14 +1,9 @@
 const navLinks = [
   { label: "About", href: "#about" },
+  { label: "Work", href: "#work" },
   { label: "Skills", href: "#skills" },
   { label: "Certifications", href: "#certifications" },
   { label: "Contact", href: "#contact" },
-];
-
-const socials = [
-  { name: "GitHub", url: "https://github.com/your-username" },
-  { name: "LinkedIn", url: "https://linkedin.com/in/your-username" },
-  { name: "Twitter / X", url: "https://x.com/your-username" },
 ];
 
 export default function Footer() {
@@ -45,24 +40,6 @@ export default function Footer() {
                   className="w-fit text-sm text-muted transition-colors hover:text-ink"
                 >
                   {link.label}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* SOCIALS */}
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Elsewhere</p>
-            <div className="mt-3 flex flex-col gap-2">
-              {socials.map((s) => (
-                <a
-                  key={s.name}
-                  href={s.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-fit text-sm text-muted transition-colors hover:text-ink"
-                >
-                  {s.name}
                 </a>
               ))}
             </div>
